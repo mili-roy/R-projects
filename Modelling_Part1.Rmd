@@ -1,0 +1,629 @@
+
+---
+title: "Applied Statistical Modeling with R"
+output:
+  html_document:
+    df_print: paged
+---
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 18px;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+.title {
+  font-size: 38px;
+  color: DarkRed;
+}
+ p {line-height: 2em;}
+h1 { /* Header 1 */
+  font-size: 28px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 22px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+
+# MULTIPLE LINEAR REGRESSION
+
+# PART I: FIRST ORDER MODELS WITH QUANTITATIVE INDEPENDENT VARIABLES
+
+Suppose that we are statistical consultants hired by a client to provide advice on to improve sales of a particular product. The advertising data set consists of the *Sales* (in thousands of units) of that product in 200 different markets, along with advertising budgets(in thousands of dollars) for the product in each of those markets for three different media: *TV*, *radio*, and *newspaper*.
+
+In this setting, the advertising budgets(TV, radio,and newspaper) are independent variables(predictor variables) and Sales are the dependent variable(response variable). The least square fit for the simple linear regressions of sales onto TV,radio, and newspapers are shown as following, 
+
+```{r}
+library(ggplot2)  #using ggplot2 for data visualization
+
+Advertising=read.table("/Users/thunt/OneDrive - University of Calgary/dataset603/Advertising.txt",header = TRUE,  sep ="\t" )
+#attach(Advertising)
+
+
+ggplot(data=Advertising,mapping= aes(x=tv,y=sale))+geom_point(color='red')+ 
+  geom_smooth(method = "lm", se = FALSE)
+ggplot(data=Advertising,mapping= aes(x=radio,y=sale))+geom_point(color='green')+ 
+  geom_smooth(method = "lm", se = FALSE)
+ggplot(data=Advertising,mapping= aes(x=newspaper,y=sale))+geom_point(color='black')+
+  geom_smooth(method = "lm", se = FALSE)
+
+summary(lm(sale~tv,data=Advertising))
+summary(lm(sale~radio,data=Advertising))
+summary(lm(sale~newspaper,data=Advertising))
+```
+  
+$$
+\begin{aligned}
+\hat{Sale} &= 7.032594+0.047537tv\\
+\hat{Sale} &= 9.31164+0.20250radio\\
+\hat{Sale} &= 12.35141+0.05469newspaper
+\end{aligned}
+$$  
+  
+                           
+                                    
+Simple linear regression is a useful approach for  predicting a response on the basis of a single predictor variable. However, it is unclear how to make a single prediction of sales given levels of three advertising media budgets, since each of the budgets is associated with a separate regression equation.
+
+*R functions:*
+
+*ggplot() : is used to construct the initial scatter plot.*
+
+*geom_point(): the point geom is used to create scatterplots.*
+
+*geom_smooth() : aids the eye in seeing patterns in the presence of overplotting.*
+
+
+# INTRODUCTION
+
+Does a regression with one independent variable even make sense? It does or It does not. The world is might too complex a place for simple regression alone to model it, **A Regression with two or more independent variables is called Multiple Regression.** It can be looked upon as an extension of straight-line regression analysis (which involves only one independent variable) to the situation where more than one independent variable must be considered.Dealing with several independent variables simultaneously in a regression analysis is considerably more difficult than dealing with a single independent variable, for following reasons:
+
+1. It is more difficult to choose the best model, since several reasonable candidates may exist.
+
+
+2. It is more difficult to visualize what the best fitted model looks like (especially if there are more than two independent variables), since it is not possible to plot either the data or the fitted model directly in more than three dimensions.
+
+
+3. Computations are virtually impossible without access to a high speed computer and a reliable packaged computer program.
+
+
+# PART I: FIRST ORDER MODELS WITH QUANTITATIVE INDEPENDENT VARIABLES
+
+
+# The General Multiple Linear Regression  Model
+
+
+A model that includes only terms denoting quantitative independent variable, called a **first-order model**,
+
+
+$$
+\begin{aligned}
+Y&=\beta_0+\beta_1X_1 + \beta_2X_2 + ... + \beta_pX_p+\epsilon\\
+where \\
+Y&=\mbox{ the dependent variable}\\
+X_1,X_2,...,X_p&= \mbox{ the independent variables, predictors}\\
+E(Y)&=\beta_0+\beta_1X_1 + \beta_2X_2 + ... + \beta_pX_p\mbox{ the deterministic portion of the model}\\
+\beta_i&=\mbox{regression coefficients}, i=1,...,p
+\end{aligned}
+$$
+
+
+From the Advertising example, Instead of fitting a separate simple linear regression model for each predictor, a better approach is to extend to the multiple linear regression model so that it can directly accommodate multiple predictors.
+
+$$
+\begin{aligned}
+Sales=\beta_0+\beta_1TV +\beta_2radio +\beta_3newspapers+\epsilon
+\end{aligned}
+$$
+
+# Estimating the Regression point estimates
+
+Since we cannot know the true values of the parameters $\beta_0,\beta_1,...,\beta_p$ relating $\mu$ to $X_1$, $X_2$, $X_3$,...,$X_p$ in the regression model
+$$
+\begin{aligned}
+Y&=\beta_0+\beta_1X_1 + \beta_2X_2 + ... + \beta_pX_p+\epsilon\\
+&=\mu + \epsilon\\
+where\\ 
+\mu &= \beta_0+\beta_1X_1 + \beta_2X_2 + ... + \beta_pX_p
+\end{aligned}
+$$
+
+By using the method of least squares, the estimated model is 
+$$
+\begin{aligned}
+\hat{Y}=\hat{\beta}_0+\hat{\beta}_1X_1+\hat{\beta}_2X_2+...+\hat{\beta}_pX_p
+\end{aligned}
+$$
+
+We can calculate the least squares point estimates $\hat{\beta}_0, \hat{\beta}_1,\hat{\beta_2},..., \hat{\beta_p}$ 
+of the parameters $\beta_0,\beta_1,...,\beta_p$ in the model by using the following matrix algebra formula.
+
+$\begin{bmatrix}\hat{\beta}_0 \\ \hat{\beta}_1 \\ \hat{\beta}_2 \\ \hat{\beta}_3 \\ .\\.\\. \\ \hat{\beta}_p \end{bmatrix}$ = $\hat{\beta}$ = $(X'X)^{-1}X'y$ 
+
+where _y_ and _X_ are the following column vector and matrix respectively:
+
+_y_=$\begin{bmatrix}y_1 \\ y_2 \\ y_3 \\ . \\ . \\ . \\ y_p \end{bmatrix}$ and _X_= $\begin{pmatrix}1 & x_{11} & x_{12} & . & . & . & x_{1p}\\1 & x_{21} & x_{22} & . & . & . & x_{2p}\\. & . & . & . & . & . & .\\. & . & . & . & . & . & .\\. & . & . & . & . & . & .\\1 & x_{n1} & x_{n2} & . & . & . & x_{np} \end{pmatrix}$
+
+The **least squares estimates (LSE)** $\hat{\beta}_0, \hat{\beta}_1,\hat{\beta_2},..., \hat{\beta_p}$ are obtained by __minimizing the sum of the squared residuals:__
+
+SSE=$\sum_{i=1}^{n}e_{i}^{2}=\sum_{i=1}^{n}(y_{i}-\hat{y_{i}})^2=\sum_{i=1}^{n}(y_{i}-(\hat{\beta}_0+\hat{\beta}_1X_{1i}+\hat{\beta}_2X_{2i}+...+\hat{\beta}_pX_{pi}))^2$
+
+
+![Regresson line become a plane for 2 independent variables](/Users/thunt/OneDrive - University of Calgary/dataset603/multi1.png)
+
+
+_In a three-dimensional setting, with 2 independent variables and one dependent varibale, the least square regression line becomes a plane. The plane is chosen to minimize the sum of the squared vertical distances between each observation (shown in red) and the plane._
+
+The values $\hat{\beta}_0,\hat{\beta}_1,\hat{\beta}_2,...,\hat{\beta}_p$ are called __the multiple least squares regression coefficient estimates.__ 
+
+# Point Estimating for Multiple Regression Coefficients
+
+In this class, we use a statistical _R_ program on a computer to do all the calculations for multiple regression coefficients. 
+
+
+# What is the meaning of these point estimates?                                        
+
+## Interpreting the Intercept
+
+$\hat{\beta_0}$, the y-intercept, can be interpreted as the value you would predict for y when all X~1~,X~2~,...X~p~ = 0.
+
+## Interpreting Coefficients of Predictor Varibales
+
+$\hat{\beta_i}$, the regression coefficient, describes how much change in response y for every unit change in $X_i$ when other predictor variables are held constant.
+
+
+
+From the Advertising example, the following code displays the multiple regression coefficient estimates when TV, radio, and newspaper advertising budgets are used to predict product sales. 
+
+```{r}
+reg1<-lm(sale~tv+radio+newspaper, data=Advertising)
+coefficients(reg1)
+```
+
+*R codes:*
+
+*lm() : "linear model" is used to create a simple or multiple regression model.*
+
+*coefficients(): is used to extract model coefficients from a simple or multiple regression model.*
+
+The estimated model is $\hat{Sale}=  2.939+0.046tv+0.189radio-0.001newspaper$
+
+
+We interpret these results as following:
+
+$\hat{\beta_1}=0.046$ means that for a given amount of radio and newspaper advertising, spending additional $1,000 on TV advertising leads to an _increase_ in sales by approximately 46 units.
+
+$\hat{\beta_2}=0.189$ means that for a given amount of TV and newspaper advertising, spending additional $1,000 on radio advertising leads to an _increase_ in sales by approximately 189 units.
+
+$\hat{\beta_3}=-0.001$ means that for a given amount of TV and radio advertising, spending additional $1,000 on newspapers advertising leads to a _decrease_ in sales by approximately 1 unit  !!!!
+
+##  Interval Estimate for Multiple Regression Coefficients (Confidence Interval for the individual regression coefficient)
+
+$$
+\begin{aligned}
+A~{} 100~{}(1-\alpha)\%~{}Confidence~{}Interval~{}for~{}parameter~{}\beta_i~{}is~{}\hat{\beta_i}\pm t_{\alpha/2}S_{\hat{\beta_i}}
+\end{aligned}
+$$
+where 
+
+$n=$ number of observations
+
+$p=$ number of regression coefficients
+
+
+```{r}
+reg1<-lm(sale~tv+radio+newspaper, data=Advertising)
+confint(reg1) # a 95% confidence interval for coefficients
+confint(reg1, level = 0.99) # a 99% confidence interval for coefficients
+```
+*R functions:*
+
+*confint() :Computes a 95 % confidence interval for one or more parameters in a fitted model.*
+
+*confint(model, level=...) :Computes a specific confidence interval for one or more parameters in a fitted model.*
+
+From the Advertising example, the output displays the multiple regression 95% confidence Interval for coefficient estimates when TV, radio, and newspaper advertising budgets are used to predict product sales. 
+
+ Thus, we can interpret that sales increase between 43.01 units to 48.51 units for every $1000 increase in TV advertising budget, holding radio and newspaper advertising budget (with 95% of chance).
+
+# Inclass Practice Problem 1
+
+The Body Fat data set consists of data collected on 252 adult males. The data were originally collected to build a model relating body density and percentage of body fat in adult males to several body measurement variables. These data were originally used in the article “Generalized body composition prediction equation for men using simple measurement
+
+The data file is provided in __bodyfat.csv__.  Use R software package to fit the model betwen bodyfat and other explanatory variables using Age, Neck,Abdomen,Hip,Forarm,and Wrist and construct a 95% confidence interval for regression coefficients.
+
+```{r,include=F}
+bodayfat=read.csv("/Users/thunt/OneDrive - University of Calgary/BioStatisticsModelling/bodyfat.csv", header = TRUE)
+head(bodayfat,3)
+#option 1
+mulreg<-lm(bodyfat~Age+Neck+Abdomen+Hip+Forearm+Wrist,data=bodayfat)
+summary(mulreg)
+confint(mulreg) # a 95% confidence interval for coefficients
+```
+
+
+
+We notice that the multiple regression coefficient estimates for TV and radio are in the same direction but the coefficient estimate for newspaper is close to zero. Moreover, a 95% confidence interval for newspaper also includes zero (-0.0126,0.0105). In this case, is there a relationship between newspaper and sales? In general when we perform multiple regression, we usually are interested in answering a few important questions.
+
+1. Is this multiple regression model any good at all? Is at least one of the predictors useful in predicting the response?
+
+2. Do all the predictors help to explain Y , or is only a subset of the predictors useful?
+
+Now we address these questions as following topics,
+
+# Evaluating Overall Model Utility
+
+## Testing a Relationship Between the Response and Predictors
+
+## Full Model Test
+
+We ask the global question,"Is this multiple regression model any good at all??" The answer is that we can test some hypotheses to see the relationship between the response and predictors. The first of these hypotheses is an overall F-test or a global F test which tells us if the multiple regression model is useful.
+To address the overall question, we will test
+
+$$
+\begin{aligned}
+H_0&:\beta_1=\beta_2=...=\beta_p=0\\
+H_a&:\mbox{at least one }\beta_i\mbox{ is not zero } (i=1,2,...,p) 
+\end{aligned}
+$$
+
+## The  Analysis of Variance  for Multiple Linear Regression
+![The  Analysis of Variance  for Multiple Linear Regression](/Users/thunt/OneDrive - University of Calgary/dataset603/anovaMR.png)
+
+This hypothesis test is performed by computing the F-statistic,
+
+$$
+\begin{aligned}
+F_{cal}&=\frac{MSR}{MSE}=\frac{\frac{SSR}{p}}{{\frac{SSE}{(n-p-1)}}}\\
+where\\
+&\mbox{Sum of squares for error or residual}=SSE=\sum_{i=1}^{n}e_{i}^{2}=\sum_{i=1}^{n}(y_{i}-\hat{y_{i}})^2\\&=\sum_{i=1}^{n}(y_{i}-(\hat{\beta}_0+\hat{\beta}_1X_{1i}+\hat{\beta}_2X_{2i}+...+\hat{\beta}_pX_{pi}))^2\\
+&\mbox{Sum of squares for regression }=SSR=\sum_{i=1}^{n}(\hat{y_i}-\bar{y})^2\\
+&\mbox{Total corrected sum of squares of the Y's}=SST=\sum_{i=1}^{n}(y_{i}-\bar{y})^2\\
+&n=\mbox{the sample size}\\
+&p=\mbox{the number of predictors or the number of regression coefficients} \\\\
+&SST=SSR+SSE\\
+\end{aligned}
+$$
+
+
+```{r}
+reg1<-lm(sale~tv+radio+newspaper, data=Advertising) # (Full) model with all variables
+reg2<-lm(sale~1, data=Advertising) # Model with only intercept
+summary(reg1)
+anova(reg2,reg1) # We compare the NULL model with the full model
+```
+*R functions:*
+
+*summary() :is used to produce result summaries of the results of various model fitting functions.*
+
+*anova() :is used to compute the analysis of variance (or deviance) tables for one or more fitted model objects.*
+
+
+![Tha Anova table for Advertising data example](/Users/thunt/OneDrive - University of Calgary/dataset603/anovaadvertisingexample.jpg)
+
+From the Advertising example, the output shows that Fcal=570.3 with df= 3,196 (p-value< 2.2e-16 < $\alpha=0.05$ ),indicating that we should clearly reject the null hypothesis.
+It provides compelling evidence against the null hypothesis H~0~. In other word, the large F-test suggests that at least one of the advertising media must be related to sales. Based on the p-value, we also have extremely strong evidence that at least one of the media is associated with increased sales. 
+
+Once we check the overall F-test and reject the null hypothesis, we can move on to checking the test statistics for the individual coefficients and particular subsets of the full model test.
+
+
+# Partial Test
+
+## Individual Coefficients Test (t-test)
+$$
+\begin{aligned}
+H_0&:\beta_i=0\\
+H_a&:\beta_i\neq0\mbox{    ($i=1,2,...,p$)}\\\\\\
+t_{cal}&= \frac{\hat{\beta_i}-\beta_i}{SE(\hat{\beta_i})} \mbox{      which has $df=n-p$ degree of freedom}
+\end{aligned}
+$$
+
+```{r}
+reg1<-lm(sale~tv+radio+newspaper, data=Advertising)
+summary(reg1)
+```
+From the Advertising example, the output shows that the newspaper has tcal=-0.177 with the p-value= 0.86 > 0.05,indicating that we should clearly not to reject the null hypothesis that the newspaper advertising  has not significantly influence on sales at $\alpha=0.05$. 
+
+
+## Partial F test
+
+The goal is to investigate the contribution of a subset of predictors given that a different set of predictors is already in the model. We define:
+
+Full Model to be the model with the whole set of predictors
+
+Reduced Model to be the model with the whole set of predictors less the subset to be tested.
+
+For example, if we want to test X1 given X2 and X3 are in the model, then the Full Model has the predictors X1 , X2 and X3, and the Reduced Model has the predictors X2 and X3. This will test the effect of X1 in the full model with all 3 predictors.$Y=\beta_0+\beta_1X_1+\beta_2X_2+\beta_3X_3+\epsilon$. The hypotheses are:
+
+$$
+\begin{aligned}
+H_0&:\beta_1=0\mbox{   in the model   } Y=\beta_0+\beta_1X_1+\beta_2X_2+\beta_3X_3+\epsilon \\
+H_a&:\beta_1\neq0\mbox{   in the model   } Y=\beta_0+\beta_1X_1+\beta_2X_2+\beta_3X_3+\epsilon
+\end{aligned}
+$$
+In general,to test that a particular subset of q of the coefficients are zero, the hypotheses are
+$$
+\begin{aligned}
+H_0&:\beta_{p-q+1}=\beta_{p-q+2}=...=\beta_p=0\\
+H_a&:\mbox{at least one }\beta_i \neq0
+\end{aligned}
+$$
+This can be achieved using an F-test. Let SSE(Full model) be the residual sum of squares under the full model and SSE(Reduced model) be the residual sum of squares under the reduced model. Then the F-statistic is
+
+$$
+\begin{aligned}
+F_{cal}&=\frac{\frac{SSE_{\mbox{reduced model}}-SSE_{\mbox{full model}}}{df_{reduced}-df_{full}}}{\frac{SSE_{\mbox{full model}}}{df_{full}}}
+\end{aligned}
+$$
+
+```{r}
+full<-lm(sale~tv+radio+newspaper, data=Advertising)
+reduced<-lm(sale~tv+radio, data=Advertising) # dropping a newspaper variable
+anova(reduced,full) # test if Ho: newspaper = 0 
+```
+*R function:*
+
+*anova(reduced,full) :is used to compute the analysis of variance (or deviance) for comparing between reduced and full nodel.*
+
+From the Advertising example, after dropping the variable newspaper off the full model, the reduced output shows that 
+
+$$
+\begin{aligned}
+F_{cal}&=\frac{\frac{SSE_{\mbox{reduced model}}-SSE_{\mbox{full model}}}{df_{reduced}-df_{full}}}{\frac{SSE_{\mbox{full model}}}{df_{full}}}\\
+&=\frac{(556.9140-556.8253)/(197-196)}{(556.8253/196)}=0.031
+\end{aligned}
+$$
+
+
+with df=1,196 (p-value=0.8599 > $\alpha=0.05$ ), indicating that we should clearly not to reject the null hypothesis which mean that we definately drop the variable newspaper off the model.
+
+At this point,
+
+From the initial estimated regression model is $\hat{Sale}=  2.939+0.046tv+0.189radio-0.001newspaper$
+
+After checking individual coefficients test, the final regression model is $\hat{Sale}=  2.92110+0.04575tv+0.18799radio$
+
+# Inclass Practice Problem 2
+
+From the body fat problem, use the method of Partial F test to fit the model. 
+
+```{r,include=F}
+bodayfat=read.csv("/Users/thunt/OneDrive - University of Calgary/BioStatisticsModelling/bodyfat.csv", header = TRUE)
+head(bodayfat,3)
+#option 1
+full<-lm(bodyfat~.,data=bodayfat)
+summary(full)
+
+reduced<-lm(bodyfat~Age+Neck+Abdomen+Hip+Forearm+Wrist,data=bodayfat)
+summary(reduced)
+
+anova(reduced,full)
+
+```
+
+
+
+
+# Model Fit
+
+How well does the regression model fit?? Two of the most common numerical measures of model fit are RSE(Residual Standard Error: $s$) and $R^2$ (Coefficient of Determination), the fraction of variation explained. These quantities are computed and interpreted in the same fashion as for simple linear regression.
+
+## R^2^(the Coefficient of Determination)
+
+Recall that in simple linear regression, $R^2$ is the square of the correlation of the response and the variable. **In multiple regression**, it turns out that it equals to  $Cor(Y,\hat{Y})^2$, the square of the correlation between the response and the fitted linear model, $R^2$ is the proportion of the total variation that is explained by the regression model of $Y$ on $X_1,X_2,...X_p$ that is,
+
+$$
+\begin{aligned}
+R^2=\frac{SSR}{SST}=1-\frac{SSE}{SST}
+\end{aligned}
+$$
+
+
+An $R^2$ value close to 1 indicates that the model explains a large portion of the variance in the response variable. For example, if $R^2$ is 0.7982 for the model, then 79.82% of the variation of the response variable is explained by the model.
+
+It turns out that R^2^ will always increase when more variables are added to the model, even if those variables are only weakly associated with the response. To compensate for this one can define **an adjusted coefficient of determination**, $R^2_{adj}$
+
+$$
+\begin{aligned}
+R^2_{adj}=1-\frac{\frac{SSE}{n-p-1}}{\frac{SST}{n-1}}
+\end{aligned}
+$$
+
+```{r}
+full<-lm(sale~tv+radio+newspaper, data=Advertising)
+reduced<-lm(sale~tv+radio, data=Advertising)
+summary(full)$r.squared
+summary(reduced)$r.squared
+summary(full)$adj.r.squared
+summary(reduced)$adj.r.squared
+```
+*R functions:*
+
+*summary(model)$r.squared :extract the coefficient of determination from the r.squared attribute of its summary*
+
+*summary(model)$adj.r.squared :extract the coefficient of determination from the adj.r.squared attribute of its summary*
+
+From the Advertising example, the model containing all predictors has a $R^2_{adj}=0.8956$. In contrast, the model that contains only TV and radio as predictor has a $R^2_{adj}=0.8962$ . This implies that a model that uses TV and radio expenditures to predict sales is substantially better than one that use the full model. 
+
+
+## The estimation of Standard error of residuals
+
+One way to assess strength of fit is to consider how far off the model is for a typical case. That is, for some observations, the fitted value will be very close to the actual value, while for others it will not. The magnitude of a typical residual can give us a sense of generally how close our estimates are. Some of the residuals are positive, while others are negative.Thus, it makes more sense to compute the square root of the mean squared residual and to make this estimate unbiased, we have to divide the sum of the squared residuals by the degrees of freedom in the model. In general, RMSE or  $s$ is defined as
+
+$$
+\begin{aligned}
+s=&RMSE=\sqrt{\frac{1}{n-p-1}SSE}=\sqrt{MSE}\\
+where&\\
+SSE&=\sum_{i=1}^{n}e_{i}^{2}=\sum_{i=1}^{n}(y_{i}-\hat{y_{i}})^2=\sum_{i=1}^{n}(y_{i}-(\hat{\beta}_0+\hat{\beta}_1X_{1i}+\hat{\beta}_2X_{2i}+...+\hat{\beta}_pX_{pi}))^2
+\end{aligned}
+$$
+RMSE can be interpreted as the standard deviation of the unexplained variance, and has the useful property of being in the same units as the response variable. __Lower values of RMSE indicate better fit.__
+
+```{r}
+full<-lm(sale~tv+radio+newspaper, data=Advertising)
+reduced<-lm(sale~tv+radio, data=Advertising)
+sigma(full) # RMSE for the full model
+sigma(reduced) # Rmse for the reduced model
+```
+
+*R functions:*
+
+*sigma(model) :extract the "standard error of residuals" from a fitted model).*
+
+
+Looking at the reduced model that contains only TV and radio as predictors has an RMSE of 1.681, and the model that also contains newspaper as a predictor (full model) has an RMSE=1.686. This corroborates our previous conclusion that a model that uses TV and radio expenditures to predict sale is much more accurate than one that use the full model. Therefore, there is no point in using newspaper spending as a predictor in the model.
+
+In many computer printouts and textbooks, $s^2$ is called the mean square for error (MSE). This estimate of $s^2=MSE=\frac{1}{n-p-1}SSE$.  The units of the estimated variance are squared units of the dependent variable y. Since the dependent variable y in the adverstising data example is sales in units, the units of $s^2$ are units^2^. This makes meaningful interpretation of $s^2$ difficult, so we use the standard deviation $s$ to provide a more meaningful measure of variability.
+
+
+***Output from the full model,***
+
+*Residual standard error: 1.686 on 196 degrees of freedom*
+
+*Multiple R-squared:  0.8972,	Adjusted R-squared:  0.8956*
+
+***Output from the reduced model***
+
+*Residual standard error: 1.681 on 197 degrees of freedom*
+
+*Multiple R-squared:  0.8972,	Adjusted R-squared:  0.8962*
+
+## Model Prediction
+
+Once we have fit the multiple regression model, it is  straightforward to predict the response Y on the basis of a set of values for the predictors $X_1,X_2,...X_p$. We usually use a __prediction interval__ to predict the response y 
+
+```{r}
+reduced<-lm(sale~tv+radio, data=Advertising)
+newdata = data.frame(tv=200, radio=20)
+predict(reduced,newdata,interval="predict")
+```
+*R function*
+*predict() : use for prediction of the response. We also set the interval type as "predict", and use the default 0.95 confidence level*
+
+
+The 95% confidence interval of the sale with the given parameters is between 12.5042 (thousand units )and 19.1597(thousandunits) when the TV and Radio advertising budgets are 200 thousand dollars and 20 thousand dollars, respectively.
+
+# Inclass Practice Problem 3
+
+From the body fat problem, use the method of Model Fit to calculate $R^2_{adj}$ and RMSE for the estimated model.
+
+```{r,include=F}
+bodayfat=read.csv("/Users/thunt/OneDrive - University of Calgary/BioStatisticsModelling/bodyfat.csv", header = TRUE)
+head(bodayfat,3)
+#option 1
+full<-lm(bodyfat~.,data=bodayfat)
+summary(full)
+summary(full)$adj.r.squared
+summary(full)$sigma
+
+reduced<-lm(bodyfat~Age+Neck+Abdomen+Hip+Forearm+Wrist,data=bodayfat)
+summary(reduced)
+summary(reduced)$adj.r.squared
+summary(reduced)$sigma
+```
+
+# Inclass Practice Problem 4
+
+Predict the average boday fat when  
+
+Age      =        25 year old, 
+
+Neck     =        40    cm,
+
+Abdomen  =        90.4  cm,
+
+Hip      =        97.5  cm,
+
+Forearm  =        28.4  cm,
+
+Wrist    =        19.6  cm.
+
+
+```{r,include=F}
+bodayfat=read.csv("/Users/thunt/OneDrive - University of Calgary/BioStatisticsModelling/bodyfat.csv", header = TRUE)
+head(bodayfat,3)
+reduced<-lm(bodyfat~Age+Neck+Abdomen+Hip+Forearm+Wrist,data=bodayfat)
+newdata = data.frame(Age=25,Neck=40,Abdomen=90.4,Hip=97.5,Forearm=28.4,Wrist=19.6)
+predict(reduced,newdata,interval="predict")
+```
+
+
+
+
+
+## Exercise1
+
+The amount of water used by the production facilities of a plant varies. Observations on water usage and other,possibility related,variables were collected for 250 months. The data are given in __water.csv file__ The explanatory variables are
+
+TEMP= average monthly temperature(degree celsius)
+
+PROD=amount of production( in hundreds of cubic)
+
+DAYS=number of operationing day in the month (days)
+
+HOUR=number of hours shut down for maintenance (hours)
+
+The response variable is USAGE=monthly water usage (gallons/minute)
+
+
+a. Fit the model containing all four independent variables. What is the multiple regression equation?
+
+b. Test the hyphthesis for the full model. Use significance level 0.05. 
+
+c. Would you suggest the model in part b for predictive purposes? Which model or set of models would you suggest for predictive purposes? Hint: Use Individual Coefficients Test (t-test) to find the best model.
+
+d. Use Partial F test to confirm that the independent variable should be out of the model at significance level 0.05.
+
+e. Obtain a 95% confidence interval of regression coefficient for TEMP from the model in part c. 
+
+f. Use the method of Model Fit to calculate $R^2_{adj}$ and RMSE to compare the full model and the model in part c. Which model or set of models would you suggest for predictive purpose?
+
+
+
+```{r,include=FALSE}
+waterdata=read.csv("/Users/thunt/OneDrive - University of Calgary/dataset603/water.csv",header = TRUE)
+#Question a,b
+fullmodel=lm(USAGE~.,data=waterdata)
+summary(fullmodel)
+anova(fullmodel)
+
+#Question c
+reducedmodel=lm(USAGE~PROD+TEMP+HOUR,data=waterdata)
+summary(reducedmodel)
+anova(reducedmodel)
+
+#Question d
+anova(reducedmodel,fullmodel)
+
+#Question e
+
+confint(reducedmodel)
+
+#Question f
+
+summary(reducedmodel)$r.squared
+summary(reducedmodel)$adj.r.squared
+sigma(reducedmodel)
+```
+
+# References
+_-Gareth James & Daniela Witten & Trevor Hastie Robert Tibshirani, An Introduction to Statistical Learning with Applications in R: Springer New York Heidelberg Dordrecht London._
+
+_-Wickham and Grolemund, R for Data Science: O'Reilly Media_
+
+_-Richard J. Rossi, Applied Biostatistics for the Health Sciences, Second Edition, 2022_
+

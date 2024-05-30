@@ -1,0 +1,151 @@
+---
+title: "Inclas problems_Biostat"
+author: "Mili"
+date: "5/7/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+# Inclass Practice Problem 1
+
+The Body Fat data set consists of data collected on 252 adult males. The data were originally collected to build a model relating body density and percentage of body fat in adult males to several body measurement variables. These data were originally used in the article “Generalized body composition prediction equation for men using simple measurement
+
+The data file is provided in __bodyfat.csv__.  Use R software package to fit the model betwen bodyfat and other explanatory variables using Age, Neck,Abdomen,Hip,Forarm,and Wrist and construct a 95% confidence interval for regression coefficients.
+
+```{r,include=TRUE}
+bodayfat=read.csv("C:/Users/14036/Desktop/BioStatistics/bodyfat.csv", header = TRUE)
+head(bodayfat,3)
+#option 1
+mulreg<-lm(bodyfat~Age+Neck+Abdomen+Hip+Forearm+Wrist,data=bodayfat)
+summary(mulreg)
+confint(mulreg) # a 95% confidence interval for coefficients
+```
+
+We notice that the multiple regression coefficient estimates for TV and radio are in the same direction but the coefficient estimate for newspaper is close to zero. Moreover, a 95% confidence interval for newspaper also includes zero (-0.0126,0.0105). In this case, is there a relationship between newspaper and sales? In general when we perform multiple regression, we usually are interested in answering a few important questions.
+
+1. Is this multiple regression model any good at all? Is at least one of the predictors useful in predicting the response?
+
+2. Do all the predictors help to explain Y , or is only a subset of the predictors useful?
+
+Now we address these questions as following topics,
+
+# Evaluating Overall Model Utility
+
+## Testing a Relationship Between the Response and Predictors
+
+## Full Model Test
+
+We ask the global question,"Is this multiple regression model any good at all??" The answer is that we can test some hypotheses to see the relationship between the response and predictors. The first of these hypotheses is an overall F-test or a global F test which tells us if the multiple regression model is useful.
+To address the overall question, we will test
+
+$$
+\begin{aligned}
+H_0&:\beta_1=\beta_2=...=\beta_p=0\\
+H_a&:\mbox{at least one }\beta_i\mbox{ is not zero } (i=1,2,...,p) 
+\end{aligned}
+$$
+This hypothesis test is performed by computing the F-statistic,
+
+$$
+\begin{aligned}
+F_{cal}&=\frac{MSR}{MSE}=\frac{\frac{SSR}{p}}{{\frac{SSE}{(n-p-1)}}}\\
+where\\
+&\mbox{Sum of squares for error or residual}=SSE=\sum_{i=1}^{n}e_{i}^{2}=\sum_{i=1}^{n}(y_{i}-\hat{y_{i}})^2\\&=\sum_{i=1}^{n}(y_{i}-(\hat{\beta}_0+\hat{\beta}_1X_{1i}+\hat{\beta}_2X_{2i}+...+\hat{\beta}_pX_{pi}))^2\\
+&\mbox{Sum of squares for regression }=SSR=\sum_{i=1}^{n}(\hat{y_i}-\bar{y})^2\\
+&\mbox{Total corrected sum of squares of the Y's}=SST=\sum_{i=1}^{n}(y_{i}-\bar{y})^2\\
+&n=\mbox{the sample size}\\
+&p=\mbox{the number of predictors or the number of regression coefficients} \\\\
+&SST=SSR+SSE\\
+\end{aligned}
+$$
+# Inclass Practice Problem 2
+
+From the body fat problem, use the method of Partial F test to fit the model. 
+
+```{r,include=T}
+bodayfat=read.csv("C:/Users/14036/Desktop/BioStatistics/bodyfat.csv", header = TRUE)
+head(bodayfat,3)
+#option 1
+full<-lm(bodyfat~.,data=bodayfat)
+summary(full)
+
+reduced<-lm(bodyfat~Age+Neck+Abdomen+Hip+Forearm+Wrist,data=bodayfat)
+summary(reduced)
+
+anova(reduced,full)
+```
+# Model Fit
+
+How well does the regression model fit?? Two of the most common numerical measures of model fit are RSE(Residual Standard Error: $s$) and $R^2$ (Coefficient of Determination), the fraction of variation explained. These quantities are computed and interpreted in the same fashion as for simple linear regression.
+
+## R^2^(the Coefficient of Determination)
+
+Recall that in simple linear regression, $R^2$ is the square of the correlation of the response and the variable. **In multiple regression**, it turns out that it equals to  $Cor(Y,\hat{Y})^2$, the square of the correlation between the response and the fitted linear model, $R^2$ is the proportion of the total variation that is explained by the regression model of $Y$ on $X_1,X_2,...X_p$ that is,
+
+$$
+\begin{aligned}
+R^2=\frac{SSR}{SST}=1-\frac{SSE}{SST}
+\end{aligned}
+$$
+
+An $R^2$ value close to 1 indicates that the model explains a large portion of the variance in the response variable. For example, if $R^2$ is 0.7982 for the model, then 79.82% of the variation of the response variable is explained by the model.
+
+It turns out that R^2^ will always increase when more variables are added to the model, even if those variables are only weakly associated with the response. To compensate for this one can define **an adjusted coefficient of determination**, $R^2_{adj}$
+
+$$
+\begin{aligned}
+R^2_{adj}=1-\frac{\frac{SSE}{n-p-1}}{\frac{SST}{n-1}}
+\end{aligned}
+$$
+# Inclass Practice Problem 3
+
+From the body fat problem, use the method of Model Fit to calculate $R^2_{adj}$ and RMSE for the estimated model.
+
+```{r,include=T}
+bodayfat=read.csv("C:/Users/14036/Desktop/BioStatistics/bodyfat.csv", header = TRUE)
+head(bodayfat,3)
+#option 1
+full<-lm(bodyfat~.,data=bodayfat)
+summary(full)
+summary(full)$adj.r.squared
+summary(full)$sigma
+
+reduced<-lm(bodyfat~Age+Neck+Abdomen+Hip+Forearm+Wrist,data=bodayfat)
+summary(reduced)
+summary(reduced)$adj.r.squared
+summary(reduced)$sigma
+```
+# Inclass Practice Problem 4
+
+Predict the average boday fat when  
+
+Age      =        25 year old, 
+
+Neck     =        40    cm,
+
+Abdomen  =        90.4  cm,
+
+Hip      =        97.5  cm,
+
+Forearm  =        28.4  cm,
+
+Wrist    =        19.6  cm.
+
+
+```{r,include=T}
+bodayfat=read.csv("C:/Users/14036/Desktop/BioStatistics/bodyfat.csv", header = TRUE)
+head(bodayfat,3)
+reduced<-lm(bodyfat~Age+Neck+Abdomen+Hip+Forearm+Wrist,data=bodayfat)
+newdata = data.frame(Age=25,Neck=40,Abdomen=90.4,Hip=97.5,Forearm=28.4,Wrist=19.6)
+predict(reduced,newdata,interval="predict")
+```
+# References
+_-Gareth James & Daniela Witten & Trevor Hastie Robert Tibshirani, An Introduction to Statistical Learning with Applications in R: Springer New York Heidelberg Dordrecht London._
+
+_-Wickham and Grolemund, R for Data Science: O'Reilly Media_
+
+_-Richard J. Rossi, Applied Biostatistics for the Health Sciences, Second Edition, 2022_
+
